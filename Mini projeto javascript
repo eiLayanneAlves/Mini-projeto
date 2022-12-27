@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>todo-list</title>
+</head>
+<style>
+:root {
+    --primary-color: #F4CE01;
+    --secondary-color: #0F0F0B;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+html {
+    font-size: 62.5%;
+}
+
+body {
+    background-color: var(--primary-color);
+    font: bold 2rem 'Open Sans', sans-serif;
+}
+
+.todo {
+    display: flex;
+    width: 50vw;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 auto;
+    gap: 15px;
+}
+
+.todo__title {
+    display: flex;
+    background-color: var(--secondary-color);
+    width: 100%;
+    height: 80px;
+    justify-content: center;
+    align-items: center;
+    margin-top: 50px;
+    box-shadow: 1px 1px 5px var(--secondary-color);
+    font-size: 3rem;
+    color: var(--primary-color);
+}
+
+.todo__list {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.todo__item{
+    display: flex;
+    width: 100%;
+    height: 60px;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px;
+    box-shadow: 1px 1px 5px var(--secondary-color);
+}
+.todo__item > div {
+    width: 80%;
+}
+.todo__item:hover {
+    cursor: pointer;
+    transition: all .5s ease;
+    background-color: var(--secondary-color);
+    color: var(--primary-color);
+}
+
+
+.todo__item > input[type='text'] {
+    border: none;
+    width: 80%;
+    font: inherit;
+}
+
+.todo__item > input[type='button'],
+.todo__item > input[type='checkbox'] {
+    width: 30px;
+    height: 30px;
+    font: inherit;
+}
+
+
+.todo__item > input[type='checkbox']:checked  + div {
+    text-decoration:line-through;
+}
+
+.todo__new-item{
+    display: flex;
+    background-color: #fff59d;
+    width: 100%;
+    height: 70px;
+    justify-content: space-evenly;
+    padding: 10px 0;
+    box-shadow: 1px 1px 5px var(--secondary-color);
+    margin: 10px;
+    font: inherit;
+}
+
+.todo__new-item > input{
+    background-color: #fff59d;
+    border: none;
+    width: 80%;
+    outline: none;
+    font: inherit;
+}
+
+.todo__new-item > input::placeholder {
+    font-style: italic;
+    font-weight: normal;
+}
+</style>
+<body>
+    <div class="todo">
+        <div class="todo__title">
+            TODO - LIST
+        </div>
+
+        <div class="todo__list" id='todoList'>
+
+        </div>
+
+        <div class="todo__new-item" id="newItem">
+            <div>&and;</div>
+            <input type="text" placeholder="Digite e pressione enter para adicionar a tarefa">
+            <div>&and;</div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+<script>
+
+'use strict';
+
+let banco = [];
+
+const getBanco = () => JSON.parse(localStorage.getItem ('todoList')) ?? [];
+const setBanco = (banco) => localStorage.setItem ('todoList', JSON.stringify(banco));
+
+const criarItem = (tarefa, status, indice) => {
+    const item = document.createElement('label');
+    item.classList.add('todo__item');
+    item.innerHTML = `
+        <input type="checkbox" ${status} data-indice=${indice}>
+        <div>${tarefa}</div>
+        <input type="button" value="X" data-indice=${indice}>
+    `;
+    document.getElementById('todoList').appendChild(item);
+}
+
+const limparTarefas = () => {
+    const todoList = document.getElementById('todoList');
+    while (todoList.firstChild) {
+        todoList.removeChild(todoList.lastChild);
+    }
+}
+
+const atualizarTela = () => {
+    limparTarefas();
+    const banco = getBanco(); 
+    banco.forEach ( (item, indice) => criarItem (item.tarefa, item.status, indice));
+}
+
+const inserirItem = (evento) => {
+    const tecla = evento.key;
+    const texto = evento.target.value;
+    if (tecla === 'Enter'){
+        const banco = getBanco();
+        banco.push ({'tarefa': texto, 'status': ''});
+        setBanco(banco);
+        atualizarTela();
+        evento.target.value = '';
+    }
+}
+
+const removerItem = (indice) => {
+    const banco = getBanco();
+    banco.splice (indice, 1);
+    setBanco(banco);
+    atualizarTela();
+}
+
+const atualizarItem = (indice) => {
+    const banco = getBanco();
+    banco[indice].status = banco[indice].status === '' ? 'checked' : '';
+    setBanco(banco);
+    atualizarTela();
+}
+
+const clickItem = (evento) => {
+    const elemento = evento.target;
+    console.log (elemento.type);
+    if (elemento.type === 'button') {
+        const indice = elemento.dataset.indice;
+        removerItem (indice);
+    }else if (elemento.type === 'checkbox') {
+        const indice = elemento.dataset.indice;
+        atualizarItem (indice);
+    }
+}
+
+document.getElementById('newItem').addEventListener('keypress', inserirItem);
+document.getElementById('todoList').addEventListener('click', clickItem);
+
+atualizarTela();
+</script>
+</html>
